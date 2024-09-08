@@ -1,27 +1,36 @@
 from typing import List
 
+from pdfplumber.page import Page
 import numpy as np
-import cv2
+
+OBJECT_TYPES = ["line", "curve", "rect", "char", "image"]
 
 
-def page_scan(page_objs, page_dim, line_spacing=5.0, vertical_scan=True, debug=False):
+def page_scan(
+    page: Page,
+    line_spacing: float = 5.0,
+    vertical_scan: bool = True,
+    debug: bool = False,
+):
+    page_objs = page.objects
+    page_bbox = page.bbox
     # vertical scan implies the lines are going across the page dropped from top to bottom
-    p0, p1 = "top", "bottom"
     if not vertical_scan:
+        page_dim = (page_bbox[1], page_bbox[3])
         p0, p1 = "x0", "x1"
+    else:
+        page_dim = (page_bbox[0], page_bbox[2])
+        p0, p1 = "top", "bottom"
 
     scan_intersects = []
     scan_lines = list(np.arange(*page_dim, line_spacing))
     for scan_line in scan_lines:
         is_crossed = False
-        for obj_type in page_objs:
-            # We only check objects that fall into these categories
-            if obj_type not in {"line", "curve", "rect", "char", "image"}:
-                continue
+        for obj_type in OBJECT_TYPES:
             for obj in page_objs[obj_type]:
                 if obj[p0] < scan_line < obj[p1]:
-                    is_crossed = True
                     scan_intersects.append(True)
+                    is_crossed = True
                     break
             if is_crossed:
                 break

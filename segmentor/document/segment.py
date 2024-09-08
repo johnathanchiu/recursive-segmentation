@@ -23,7 +23,10 @@ class ImageSection:
 
 
 def section_page(
-    page: Section, page_breaks, vertical_div=True, debug_info=None
+    page: Section,
+    page_breaks: List[Tuple[int, int]],
+    vertical_div: bool = True,
+    debug_info: List[Tuple[bool, int]] = None,
 ) -> List[CroppedPage]:
     if debug_info:
         im = page.page_crop.to_image()
@@ -54,19 +57,10 @@ def section_page(
 
 # TODO: Support image operations for page scan
 def partition_page(page: Section, debug=False) -> List[CroppedPage]:
-    page_bbox = page.page_crop.bbox
-    if page.vertical_seg:
-        page_dim = (page_bbox[1], page_bbox[3])
-        line_spacing = 5.0  # arbitrary hyperparameters
-    else:
-        page_dim = (page_bbox[0], page_bbox[2])
-        line_spacing = 8.0  # arbitrary hyperparameters
-
     page_breaks, debug_info = page_scan(
-        page.page_crop.objects,
-        page_dim,
+        page.page_crop,
         vertical_scan=page.vertical_seg,
-        line_spacing=line_spacing,
+        line_spacing=5.0 if page.vertical_seg else 8.0,  # arbitrary hyperparameters
         debug=debug,
     )
     return section_page(
@@ -74,7 +68,7 @@ def partition_page(page: Section, debug=False) -> List[CroppedPage]:
     )
 
 
-def segment_pdf_page(page: Page, debug=False) -> List[CroppedPage]:
+def segment_pdf_page(page: Page, debug: bool = False) -> List[CroppedPage]:
     page_queue = [Section(page_crop=page, vertical_seg=True)]
 
     parsed_segments = []
@@ -109,7 +103,7 @@ def partition_image(page_section: ImageSection) -> List[Image.Image]:
     page_image = page_section.page_image
     vseg = page_section.vertical_seg
 
-    page_breaks, debug_info = image_scan(
+    page_breaks, _ = image_scan(
         np.array(page_section.page_image), line_spacing=10.0, vertical_scan=vseg
     )
 
