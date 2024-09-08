@@ -1,7 +1,7 @@
 from typing import List
 
 import numpy as np
-from regex import R
+import cv2
 
 
 def page_scan(page_objs, page_dim, line_spacing=5.0, vertical_scan=True, debug=False):
@@ -61,6 +61,45 @@ def div_intersections(intersections: List[bool], scan_lines: List[float]):
         start, end = section_int
         p1 = scan_lines[min(end + 1, len(scan_lines) - 1)]
         p0 = scan_lines[max(start - 1, 0)]
-        section_crop_dims.append((p0, p1))
+        section_crop_dims.append((int(p0), int(p1)))
 
     return section_crop_dims
+
+
+def image_scan(
+    image_crop: np.array,
+    line_spacing: float = 5.0,
+    vertical_scan: bool = True,
+    pixel_crop_size: int = 5,
+    debug: bool = False,
+):
+    shape = image_crop.shape[0] if vertical_scan else image_crop.shape[1]
+
+    scan_intersects = []
+    scan_lines = list(np.arange(0, shape, line_spacing))
+    for scan_line in scan_lines:
+        pixel_scan = (
+            image_crop[
+                max(int(scan_line) - pixel_crop_size, 0) : int(scan_line)
+                + pixel_crop_size
+            ]
+            if vertical_scan
+            else image_crop[
+                :,
+                max(int(scan_line) - pixel_crop_size, 0) : int(scan_line)
+                + pixel_crop_size,
+            ]
+        )
+
+        # Simple thresholding like this would result in incorrect results (e.g., if the background is not white)
+        if np.mean(pixel_scan) < 254.8:
+            scan_intersects.append(True)
+            continue
+
+        scan_intersects.append(False)
+
+    debug_info = None
+    if debug:
+        debug_info = zip(scan_intersects, scan_lines)
+
+    return div_intersections(scan_intersects, scan_lines), debug_info
