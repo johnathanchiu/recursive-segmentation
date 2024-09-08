@@ -1,0 +1,4 @@
+numpy==2.1.1
+pdfminer.six==20231228
+pdfplumber==0.11.4
+pillow==10.4.0
