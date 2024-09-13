@@ -1,13 +1,10 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List
 
-from pdfplumber.page import CroppedPage, Page
+from pdfplumber.page import CroppedPage
 import numpy as np
 
 from .div import div_intersections
-
-
-OBJECT_TYPES = ["line", "curve", "rect", "char", "image"]
 
 
 @dataclass
@@ -17,31 +14,31 @@ class Section:
     seg_depth: int = 0
 
 
-def pdf_page_scan(
-    page: Page,
-    line_spacing: float = 5.0,
-    vertical_scan: bool = True,
-    debug: bool = False,
-):
-    page_objs = page.objects
-    page_bbox = page.bbox
+def pdf_page_scan(page: CroppedPage, line_spacing=5.0, vertical_scan=True, debug=False):
     # vertical scan implies the lines are going across the page dropped from top to bottom
-    if not vertical_scan:
-        page_dim = (page_bbox[1], page_bbox[3])
-        p0, p1 = "x0", "x1"
-    else:
-        page_dim = (page_bbox[0], page_bbox[2])
+    page_bbox = page.bbox
+    page_objs = page.objects
+    if vertical_scan:
         p0, p1 = "top", "bottom"
+        page_dim = (page_bbox[1], page_bbox[3])
+        line_spacing = 5.0  # arbitrary hyperparameters
+    else:
+        p0, p1 = "x0", "x1"
+        page_dim = (page_bbox[0], page_bbox[2])
+        line_spacing = 8.0  # arbitrary hyperparameters
 
     scan_intersects = []
     scan_lines = list(np.arange(*page_dim, line_spacing))
     for scan_line in scan_lines:
         is_crossed = False
-        for obj_type in OBJECT_TYPES:
+        for obj_type in page_objs:
+            # We only check objects that fall into these categories
+            if obj_type not in {"line", "curve", "rect", "char", "image"}:
+                continue
             for obj in page_objs[obj_type]:
                 if obj[p0] < scan_line < obj[p1]:
-                    scan_intersects.append(True)
                     is_crossed = True
+                    scan_intersects.append(True)
                     break
             if is_crossed:
                 break
@@ -57,10 +54,7 @@ def pdf_page_scan(
 
 
 def section_page(
-    page: Section,
-    page_breaks: List[Tuple[int, int]],
-    vertical_div: bool = True,
-    debug_info: List[Tuple[bool, int]] = None,
+    page: Section, page_breaks, vertical_div=True, debug_info=None
 ) -> List[CroppedPage]:
     if debug_info:
         im = page.page_crop.to_image()
