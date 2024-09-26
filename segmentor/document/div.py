@@ -1,31 +1,33 @@
 from typing import List
 
 
-def div_intersections(intersections: List[bool], scan_lines: List[float]):
-    """This function essentially splits a boolean list apart. For instance,
-    `intersections` will be a boolean list. It will segement the consecutive sections
-    of `True` groups. This will then be used to match with `scan_lines` to get
-    the start and end sections of the page.
+def div_intersections(
+    intersections: List[bool], scan_lines: List[float], padding=1
+) -> List[tuple]:
     """
-    section_ints = []
-    section_start = None
+    Splits consecutive True values in `intersections` into groups and maps
+    those groups to start and end positions from `scan_lines`.
+    """
+    sections = []
+    crop_dimensions = []
 
+    # Collect consecutive True sections in intersections
+    start = None
     for i, intersects in enumerate(intersections):
-        if intersects:
-            if section_start is None:
-                section_start = i
-        elif section_start is not None:
-            section_ints.append((section_start, i - 1))
-            section_start = None
+        if intersects and start is None:
+            start = i
+        elif not intersects and start is not None:
+            sections.append((start, i - 1))
+            start = None
 
-    if section_start is not None:
-        section_ints.append((section_start, len(intersections) - 1))
+    # Handle the case where the last group extends to the end of the list
+    if start is not None:
+        sections.append((start, len(intersections) - 1))
 
-    section_crop_dims = []
-    for section_int in section_ints:
-        start, end = section_int
-        p1 = scan_lines[min(end + 1, len(scan_lines) - 1)]
-        p0 = scan_lines[max(start - 1, 0)]
-        section_crop_dims.append((int(p0), int(p1)))
+    # Convert sections to crop dimensions using scan_lines
+    for start, end in sections:
+        p0 = scan_lines[max(0, start - padding)]
+        p1 = scan_lines[min(end + padding, len(scan_lines) - 1)]
+        crop_dimensions.append((int(p0), int(p1)))
 
-    return section_crop_dims
+    return crop_dimensions
