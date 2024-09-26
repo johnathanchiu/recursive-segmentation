@@ -7,6 +7,7 @@ from .image import ImageSection, partition_image
 from .pdf import Section, partition_page
 
 
+# TODO: add padding argument
 def segment_pdf_page(page: Page, debug: bool = False) -> List[CroppedPage]:
     page_queue = [Section(page_crop=page, vertical_seg=True)]
 
@@ -38,7 +39,7 @@ def segment_pdf_page(page: Page, debug: bool = False) -> List[CroppedPage]:
     return parsed_segments
 
 
-def segment_pdf_image(page_image: Image.Image) -> List[ImageSection]:
+def segment_pdf_image(page_image: Image.Image, padding=1) -> List[ImageSection]:
     page_queue = [
         ImageSection(
             bounding_box=(0, 0, page_image.width, page_image.height),
@@ -68,5 +69,15 @@ def segment_pdf_image(page_image: Image.Image) -> List[ImageSection]:
 
     for crop in page_queue:
         parsed_segments.append(crop)
+
+    if padding:
+        for pseg in parsed_segments:
+            bbox = pseg.bounding_box
+            pseg.bounding_box = (
+                max(0, bbox[0] - padding),
+                max(0, bbox[1] - padding),
+                min(bbox[2] + padding, page_image.width),
+                min(bbox[3] + padding, page_image.height),
+            )
 
     return parsed_segments
