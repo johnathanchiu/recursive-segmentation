@@ -14,6 +14,21 @@ class Section:
     seg_depth: int = 0
 
 
+def check_object_intersections(page_objs, scan_line, p0, p1):
+    is_crossed = False
+    for obj_type in page_objs:
+        # We only check objects that fall into these categories
+        if obj_type not in {"line", "curve", "rect", "char", "image"}:
+            continue
+        for obj in page_objs[obj_type]:
+            if obj[p0] < scan_line < obj[p1]:
+                is_crossed = True
+                break
+        if is_crossed:
+            break
+    return is_crossed
+
+
 def pdf_page_scan(page: CroppedPage, line_spacing=5.0, vertical_scan=True, debug=False):
     # vertical scan implies the lines are going across the page dropped from top to bottom
     page_bbox = page.bbox
@@ -30,21 +45,8 @@ def pdf_page_scan(page: CroppedPage, line_spacing=5.0, vertical_scan=True, debug
     scan_intersects = []
     scan_lines = list(np.arange(*page_dim, line_spacing))
     for scan_line in scan_lines:
-        is_crossed = False
-        for obj_type in page_objs:
-            # We only check objects that fall into these categories
-            if obj_type not in {"line", "curve", "rect", "char", "image"}:
-                continue
-            for obj in page_objs[obj_type]:
-                if obj[p0] < scan_line < obj[p1]:
-                    is_crossed = True
-                    scan_intersects.append(True)
-                    break
-            if is_crossed:
-                break
-
-        if not is_crossed:
-            scan_intersects.append(False)
+        is_crossed = check_object_intersections(page_objs, scan_line, *(p0, p1))
+        scan_intersects.append(is_crossed)
 
     debug_info = None
     if debug:
