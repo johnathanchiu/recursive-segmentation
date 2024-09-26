@@ -1,14 +1,14 @@
 from typing import List
 
-from pdfplumber.page import CroppedPage, Page
+from pdfplumber.page import Page
 from PIL import Image
 
 from .image import ImageSection, partition_image
-from .pdf import Section, partition_page
+from .pdf import Section, PageSection, partition_page
 
 
 # TODO: add padding argument
-def segment_pdf_page(page: Page, debug: bool = False) -> List[CroppedPage]:
+def segment_pdf_page(page: Page, debug: bool = False, padding=1) -> List[PageSection]:
     page_queue = [Section(page_crop=page, vertical_seg=True)]
 
     parsed_segments = []
@@ -36,7 +36,22 @@ def segment_pdf_page(page: Page, debug: bool = False) -> List[CroppedPage]:
 
         count += 1
 
-    return parsed_segments
+    ret_parsed_segments = []
+    for crop in parsed_segments:
+        bbox = crop.bbox
+        if padding:
+            bbox = (
+                max(0, bbox[0] - padding),
+                max(0, bbox[1] - padding),
+                min(bbox[2] + padding, page.width),
+                min(bbox[3] + padding, page.height),
+            )
+
+        ret_parsed_segments.append(
+            PageSection(bounding_box=bbox, page_crop=page.crop(bbox, relative=False))
+        )
+
+    return ret_parsed_segments
 
 
 def segment_pdf_image(page_image: Image.Image, padding=1) -> List[ImageSection]:

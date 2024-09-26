@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 from pdfplumber.page import CroppedPage
 import numpy as np
@@ -12,6 +12,12 @@ class Section:
     page_crop: CroppedPage
     vertical_seg: bool
     seg_depth: int = 0
+
+
+@dataclass
+class PageSection:
+    bounding_box: Tuple[int, int, int, int]
+    page_crop: CroppedPage
 
 
 def check_object_intersections(page_objs, scan_line, p0, p1):
