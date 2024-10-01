@@ -1,51 +1,68 @@
-from torch.utils.data import Dataset
-from torchvision import transforms
-from PIL import Image
-import os
+from io import BytesIO
+import json
+import random
+
 import numpy as np
+import requests
+from torch.utils.data import Dataset
+from torchvision.transforms import RandomCrop
+from PIL import Image
 
-# Define a transform to preprocess the images
-transform = transforms.Compose(
-    [
-        transforms.RandomCrop(128),  # Randomly crop images to 128x128
-        transforms.ToTensor(),  # Convert images to tensor
-    ]
-)
+from model.seg.imutils import vstrips_process, hstrips_process
 
 
-# Create a custom dataset class
-class DocumentSegmentationDataset(Dataset):
-    def __init__(self, root_dir, bbox_data, transform=None):
-        self.root_dir = root_dir
-        self.bbox_data = bbox_data  # Dictionary mapping image names to bounding boxes
-        self.transform = transform
-        self.image_files = os.listdir(root_dir)  # List all image files in the directory
+class BoundingBoxDataset(Dataset):
+    def __init__(self, json_file: str):
+        with open(json_file, "r") as f:
+            self.data_json = json.load(f)
 
     def __len__(self):
-        return len(self.image_files)  # Return the total number of images
+        return len(self.data_json)  # Return the total number of images
 
     def __getitem__(self, idx):
-        img_name = os.path.join(
-            self.root_dir, self.image_files[idx]
-        )  # Get image file path
-        image = Image.open(img_name)  # Open the image
+        # TODO: This should actually be multiple bboxes, not just a single one
+        bbox = self.data_json["annotations"][idx]["bbox"]
+        response = requests.get(self.data_json["images"][idx]["coco_url"])
+        img = Image.open(BytesIO(response.content))
 
-        if self.transform:
-            image = self.transform(image)  # Apply transformations if any
+        crop_dims = RandomCrop.get_params(img, (256, 256))
+        crop_dims = [
+            crop_dims[0],
+            crop_dims[1],
+            crop_dims[0] + crop_dims[2],
+            crop_dims[1] + crop_dims[3],
+        ]
+        img = img.crop(crop_dims)
 
-        # Assuming the model expects strips of the image
-        strips, labels = self.create_strips_and_labels(
-            image, img_name
-        )  # Create strips and labels
+        shifted_bbox = [
+            bbox[0] - crop_dims[0],
+            bbox[1] - crop_dims[1],
+            bbox[2],
+            bbox[3],
+        ]
+        is_vert = random.choice([True, False])
+        strips, labels = self.create_strips_and_labels(img, shifted_bbox, is_vert)
+        return is_vert, strips, labels
 
-        return strips, labels  # Return the strips and their corresponding labels
+    def create_strips_and_labels(self, img, bbox, is_vert):
+        if is_vert:
+            return hstrips_process(img, bbox)
+        return vstrips_process(img, bbox)
 
-    def check_intersection(self, bboxes, y, strip_height):
-        # Check if any bounding box intersects with the strip
-        for bbox in bboxes:
-            # bbox format: [x_min, y_min, x_max, y_max]
-            if (
-                bbox[1] < y + strip_height and bbox[3] > y
-            ):  # Check for vertical intersection
-                return 1  # There is a page break
-        return 0  # No page break
+
+if __name__ == "__main__":
+    dataset = BoundingBoxDataset("instances_minitrain2017.json")
+    is_vertical, strips, labels = dataset[0]
+
+    bound_strips = []
+    for strip, label in zip(strips, labels):
+        if label:
+            bound_strips.append(np.zeros_like(strip))
+        else:
+            bound_strips.append(strip)
+
+    if is_vertical:
+        img = Image.fromarray(np.vstack(bound_strips))
+    else:
+        img = Image.fromarray(np.hstack(bound_strips))
+    img.show()

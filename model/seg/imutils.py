@@ -1,26 +1,60 @@
-def create_strips_and_labels(self, image, img_name):
-    # Convert image to numpy array for processing
-    image_array = np.array(image)
-    height, width = image_array.shape[:2]
-    strip_height = 32  # Define the height of each strip
-    strips = []
-    labels = []
+from typing import Tuple
+import numpy as np
+from PIL import Image
 
-    # Get bounding boxes for the current image
-    bboxes = self.bbox_data.get(
-        os.path.basename(img_name), []
-    )  # Get bounding boxes for the image
 
-    # Create strips from the image
-    for y in range(0, height, strip_height):
-        strip = image_array[y : y + strip_height, :]  # Get a strip
-        strips.append(strip)
+def vstrips_process(
+    img: Image.Image | np.ndarray, bbox: list[float, float, float, float], pad: int = 5
+) -> Tuple[list[np.ndarray], list[bool]]:
+    if isinstance(img, Image.Image):
+        img = np.array(img)
 
-        # Check if any bounding box intersects with the current strip
-        label = self.check_intersection(bboxes, y, strip_height)
-        labels.append(label)
+    strips, labels = [], []
+    for idx in range(0, img.shape[1], pad * 2):
+        # if this chunk overlaps with the boundary of the bbox then the model should predict a segmentation here
+        if (
+            max(idx - pad, 0) < bbox[0] < idx + pad
+            or max(idx - pad, 0) < bbox[0] + bbox[2] < idx + pad
+        ):
+            labels.append(1)
+            # if debug:
+            #     strips.append(img[:, max(idx - pad, 0) : idx + pad])
+        else:
+            labels.append(0)
+            # if debug:
+            #     size = idx + pad - max(idx - pad, 0)
+            #     strips.append(np.ones((img.shape[0], size, 3)) * 0)
+        strips.append(img[:, max(idx - pad, 0) : idx + pad])
+    return strips, labels
 
-    return (
-        strips,
-        labels,
-    )  # Return the list of strips and their corresponding labels
+
+def hstrips_process(
+    img: Image.Image | np.ndarray, bbox: list[float, float, float, float], pad: int = 5
+) -> Tuple[list[np.ndarray], list[bool]]:
+    if isinstance(img, Image.Image):
+        img = np.array(img)
+
+    # If set to debug, strips returns a list of
+    strips, labels = [], []
+    for idx in range(0, img.shape[0], pad * 2):
+        # if this chunk overlaps with the boundary of the bbox then the model should predict a segmentation here
+        if (
+            max(idx - pad, 0) < bbox[1] < idx + pad
+            or max(idx - pad, 0) < bbox[1] + bbox[3] < idx + pad
+        ):
+            labels.append(1)
+            # if debug:
+            #     strips.append(img[max(idx - pad, 0) : idx + pad])
+        else:
+            labels.append(0)
+            # size = idx + pad - max(idx - pad, 0)
+            # strips.append(np.ones((size, img.shape[1], 3)) * 0)
+        strips.append(img[max(idx - pad, 0) : idx + pad])
+    return strips, labels
+
+
+# def debug_strips(img: np.ndarray):
+#     vstrips = vstrips_intersects(np.array(img), bbox_shifted)
+#     hstrips = hstrips_intersects(np.array(img), bbox_shifted)
+#     plt.imshow(np.hstack(vstrips).astype(np.uint8))
+#     plt.imshow(np.vstack(hstrips).astype(np.uint8))
