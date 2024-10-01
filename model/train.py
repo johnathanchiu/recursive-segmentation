@@ -1,11 +1,11 @@
-import torch
+import pytorch_lightning as pl
 
-
-# Sample data
-x = torch.randn(100, 10)
-y = torch.randn(100, 1)
+from model.seg.dloader import SegmentationDataModule
+from model.seg.rseg import SegmentationModel
 
 # Training
-model = SimpleModel()
-trainer = pl.Trainer(max_epochs=5)
-trainer.fit(model, train_loader)
+model = SegmentationModel()
+trainer = pl.Trainer()
+
+imagenet = SegmentationDataModule()
+trainer.fit(model, datamodule=imagenet)
