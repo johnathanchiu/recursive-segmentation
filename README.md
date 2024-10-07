@@ -1,6 +1,6 @@
 # Recursive Segmentation Model
 
-The ideas presented in this repository are largely based off the original paper from 1995: _Recursive XY cut using bounding boxes of connected components_ (https://ieeexplore.ieee.org/document/602059). It's a super lightweight segmentation algorithm with no ML components so it also segments extremely fast and can be done in parallel too (more to come on this front).
+The ideas presented in this repository are largely based off the original paper from 1995: [_Recursive XY cut using bounding boxes of connected components_](https://ieeexplore.ieee.org/document/602059). It's a super lightweight segmentation algorithm with no ML components so it also segments extremely fast and can be done in parallel too (more to come on this front).
 
 **_Disclaimer_**: _This is an unbenchmarked segmentation model. It works decently well for documents at first glance and will be extended to general images in the near future. I also need to find a better name for this package._
 
