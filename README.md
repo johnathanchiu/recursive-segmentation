@@ -58,9 +58,7 @@ Like any bounding box segmentation algorithm, the main limitation is the shape o
 
 For largely text-based PDFs, the results can look like the example below. I'm still looking for a solution so feel free to suggest any if you have ideas.
 
-<p align="center">
-<img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/somato_output.jpg" alt="Image 3"/>
-</p>
+<img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/somato_output.jpg" alt="Image 3" width="400"/>
 
 ## Contributing
 
