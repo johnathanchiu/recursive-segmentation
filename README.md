@@ -15,6 +15,8 @@ pip install xy-segmentation
 Example usage:
 
 ```python
+from xyseg.document.segment import segment_pdf_image
+
 ifile = "examples/images/apple_iphone-13_manual.jpg"
 img = Image.open(ifile)
 
