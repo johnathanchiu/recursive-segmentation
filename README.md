@@ -4,6 +4,8 @@ The ideas presented in this repository are largely based off the original paper 
 
 **_Disclaimer_**: _This is an unbenchmarked segmentation model. It works decently well for documents at first glance and will be extended to general images in the near future. I also need to find a better name for this package._
 
+<img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/apple_output.jpg" alt="Image 1" width="400"/> <img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/dell_output.jpg" alt="Image 2" width="400"/>
+
 ## Getting Started
 
 This repository is pushed to a PyPI distribution (https://pypi.org/project/xy-segmentation/). Get started by running the following command:
