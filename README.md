@@ -50,11 +50,17 @@ pip install -r requirements.txt
 
 This algorithm works particularly well with documents that have a lot of diagrams and that are well spaced. It performs poorly on documents that are purely text-based (but there is usually no need to segment documents that are completely text-based just throw it into RAG directly). It could be interesting to detect situations like this and skip the segmentation step entirely for these sorts of pages.
 
-At the moment, I am looking to build out an ML model to determine when to split chunks in the page. The main principle would be to train a seq2seq model that outputs a binary sequence. The sequence input is the slices of the image and the output is a binary sequence where a 1 represents a split in the image and 0 otherwise.
+At the moment, I am looking to build out an ML model to determine when to split chunks in the page. The main principle would be to train a seq2seq model that outputs a binary sequence. The sequence input is the slices of the image and the output is a binary sequence where a 1 represents a split in the image and 0 otherwise. Basic training code setup can be found on my other [branch](https://github.com/johnathanchiu/recursive-segmentation/tree/jchiu/model-training-code/model).
 
 ### Limitations
 
 Like any bounding box segmentation algorithm, the main limitation is the shape of the segmentation. Edge cases arise when the input image is not necessarily framed in a grid-shape. Take an example where an image contains "L" shaped objects. This makes it impossible to segment out the "L" shaped object defined by a bounding box. If anyone has any ideas on how to improve this, please feel free to suggest!
+
+For largely text-based PDFs, the results can look like the example below. I'm still looking for a solution so feel free to suggest any if you have ideas.
+
+<p align="center">
+<img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/somato_output.jpg" alt="Image 3"/>
+</p>
 
 ## Contributing
 
