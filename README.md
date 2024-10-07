@@ -12,6 +12,21 @@ This repository is pushed to a PyPI distribution (https://pypi.org/project/xy-se
 pip install xy-segmentation
 ```
 
+Example usage:
+
+```python
+ifile = "examples/images/apple_iphone-13_manual.jpg"
+img = Image.open(ifile)
+
+draw = ImageDraw.Draw(img, "RGBA")
+for crop in segment_pdf_image(img):
+    draw.rectangle(
+        crop.bounding_box, outline=(255, 0, 0), width=3, fill=(0, 127, 255, 80)
+    )
+
+img.show()
+```
+
 ## Examples
 
 <img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/apple_output.jpg" alt="Image 1" width="400"/> <img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/dell_output.jpg" alt="Image 2" width="400"/>
