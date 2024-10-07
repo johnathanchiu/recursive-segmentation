@@ -29,7 +29,7 @@ img.show()
 
 ## Examples
 
-<img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/apple_output.jpg" alt="Image 1" width="400"/> <img src="https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/dell_output.jpg" alt="Image 2" width="400"/>
+![alt-text-1](https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/apple_output.jpg "title-1") ![alt-text-2](https://github.com/johnathanchiu/recursive-segmentation/blob/main/examples/outputs/dell_output.jpg "title-2")
 
 See `main.py` or `ex.ipynb` for examples on how to draw the images.
 
