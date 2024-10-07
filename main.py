@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw
 import pdfplumber
 
-from segmentor.document.segment import segment_pdf_page, segment_pdf_image
+from xyseg.document.segment import segment_pdf_page, segment_pdf_image
 
 pdf_file = "examples/pdfs/san-jose-pd-firearm-sample.pdf"
 
